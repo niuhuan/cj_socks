@@ -12,15 +12,26 @@ public class Socks5SocketFactory {
     public var port: UInt16
     public var auth: Option<(String, String)>
 
-    init(host: String, port: UInt16, auth!: Option<(String, String)> = None) {
+    public init(host: String, port: UInt16, auth: Option<(String, String)>) {
         this.host = host
         this.port = port
         this.auth = auth
     }
 
+    public init(host: String, port: UInt16) {
+       this(host, port, None)
+    }
+
     public func connect(domain: String, port: UInt16): StreamingSocket {
+        let socket = TcpSocket(this.host, this.port)
+        try {
+            socket.connect()
+        } catch (e: Exception) {
+            socket.close()
+            throw e
+        }
         return Socks5Socket(
-                TcpSocket(this.host, this.port),
+                socket,
                 domain,
                 port,
                 auth: auth
@@ -95,7 +106,7 @@ public class Socks5Socket <: StreamingSocket {
             socket.flush()
             var buff = readSize(2)
             if (buff[0] != 0x05 || buff[1] != 0x02) {
-                throw Exception("socks5 auth failed")
+                throw IllegalArgumentException("socks5 auth failed")
             }
             socket.write([0x01])
             socket.write([UInt8(username.toArray().size)])
@@ -105,14 +116,14 @@ public class Socks5Socket <: StreamingSocket {
             socket.flush()
             buff = readSize(2)
             if (buff[0] != 0x01 || buff[1] != 0x00) {
-                throw Exception("socks5 auth failed")
+                throw IllegalArgumentException("socks5 auth failed")
             }
         } else {
             socket.write([0x00]) // no auth
             socket.flush()
             let buff = readSize(2)
             if (buff[0] != 0x05 || buff[1] != 0x00) {
-                throw Exception("socks5 auth failed")
+                throw IllegalArgumentException("socks5 auth failed")
             }
         }
     }
@@ -135,7 +146,7 @@ public class Socks5Socket <: StreamingSocket {
         // VER	REP	RSV	ATYP    BND.ADDR	BND.PORT
         let buff = readSize(4)
         if (buff[1] != 0) {
-            throw Exception("socks5 connect failed")
+            throw IOException("socks5 connect failed")
         }
         match (buff[3]) {
             case 0x01 =>

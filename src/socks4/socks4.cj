@@ -12,15 +12,26 @@ public class Socks4SocketFactory {
     public var port: UInt16
     public var userId: Option<String>
 
-    init(host: String, port: UInt16, userId!: Option<String> = None) {
+    public init(host: String, port: UInt16, userId: Option<String>) {
         this.host = host
         this.port = port
         this.userId = userId
     }
 
+    public init(host: String, port: UInt16) {
+        this(host, port, None)
+    }
+
     public func connect(socketAddress: IPSocketAddress): StreamingSocket {
+        let socket = TcpSocket(this.host, this.port)
+        try {
+            socket.connect()
+        } catch (e: Exception) {
+            socket.close()
+            throw e
+        }
         return Socks4Socket(
-                TcpSocket(this.host, this.port),
+                socket,
                 socketAddress,
                 userId: userId
             )
@@ -101,6 +112,7 @@ public class Socks4Socket <: StreamingSocket {
             socket.write(userId.toArray())
         }
         socket.write([0x00]) // end of command
+        socket.flush()
         var buff = readSize(8)
         if (buff[1] != 0x5A) {
             throw IllegalStateException("connect rejected by server")
@@ -116,7 +128,7 @@ public class Socks4Socket <: StreamingSocket {
         while (true) {
             let current = socket.read(array[read..])
             if (current == 0) {
-                throw IOException("eof")
+                throw IOException("eof at ${current} read")
             }
             read += current
             if (read == size) {

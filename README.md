@@ -25,38 +25,42 @@ cj_socks = { git = "https://gitcode.com/niuhuan_cn/cj_socks.git" }
 
 ## 🔖 用例
 
+更多用例请参考[API文档](docs/api_doc.md)
+
 
 ```cangjie
-main(): Int64 {
-    // 连接socks服务器
-    let socket = TcpSocket("localhost", 1080)
-    socket.writeTimeout = Duration.second * 30 
-    socket.readTimeout = Duration.second * 10 
-    socket.connect()
-    // 构建socks实例
-    let sSocket = Socks5Socket(socket, "google.com", 80)
-    // 之后当作Socket使用即可
-    sSocket.write("GET / HTTP/1.1\r\nHost: google.com\r\n\r\n".toArray())
-    sSocket.flush()
-    let reader = StringReader(sSocket)
-    while (true) {
-        if (let Some(line) <- reader.readln()) {
-            println(line)
-        } else {
-            break
+main() {
+    var factory = Socks5SocketFactory("192.168.2.1", 1080)
+    try (sSocket = factory.connect("oracle.com", 80)) {
+        sSocket.write("GET / HTTP/1.1\r\nHost: oracle.com\r\n\r\n".toArray())
+        sSocket.flush()
+        let reader = StringReader(sSocket)
+        while (true) {
+            if (let Some(line) <- reader.readln()) {
+                println(line)
+            } else {
+                break
+            }
         }
     }
-    0
 }
 ```
 
-```html
-<HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
-<TITLE>301 Moved</TITLE></HEAD><BODY>
-<H1>301 Moved</H1>
-The document has moved
-<A HREF="http://www.google.com/">here</A>.
-</BODY></HTML>
+```
+HTTP/1.1 301 Moved Permanently
+Date: Thu, 19 Dec 2024 13:32:15 GMT
+Content-Type: text/html
+Content-Length: 157
+Connection: keep-alive
+Location: https://oracle.com:443/
+
+<html>
+<head><title>301 Moved Permanently</title></head>
+<body>
+<center><h1>301 Moved Permanently</h1></center>
+<hr><center></center>
+</body>
+</html>
 ```
 
 ### 经过验证的仓颉版本
