@@ -7,6 +7,33 @@ import std.collection.*
 import std.convert.*
 import std.time.*
 
+public class Socks5SocketFactory {
+    public var host: String
+    public var port: UInt16
+    public var auth: Option<(String, String)>
+
+    init(host: String, port: UInt16, auth!: Option<(String, String)> = None) {
+        this.host = host
+        this.port = port
+        this.auth = auth
+    }
+
+    public func connect(domain: String, port: UInt16): StreamingSocket {
+        let socket: StreamingSocket = TcpSocket(this.host, this.port)
+        try {
+            return Socks5Socket(
+                socket,
+                domain,
+                port,
+                auth: auth
+            )
+        } catch (e: Exception) {
+            socket.close()
+            throw e
+        }
+    }
+}
+
 public class Socks5Socket <: StreamingSocket {
 
     private let socket: StreamingSocket
@@ -29,7 +56,7 @@ public class Socks5Socket <: StreamingSocket {
         get() { socket.remoteAddress }
     }
     
-    public init(socket: StreamingSocket, domain: String, port: Int, auth!: Option<(String, String)> = None) {
+    public init(socket: StreamingSocket, domain: String, port: UInt16, auth!: Option<(String, String)> = None) {
         this.socket = socket
         try {
             socks5Auth(auth:auth)
@@ -96,7 +123,7 @@ public class Socks5Socket <: StreamingSocket {
         }
     }
 
-    public func socks5Connect(domain: String, port: Int): Unit {
+    public func socks5Connect(domain: String, port: UInt16): Unit {
         // VER	CMD	RSV	ATYP	DST.ADDR	DST.PORT
         socket.write([
             0x05, // version
