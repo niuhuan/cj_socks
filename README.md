@@ -1,7 +1,7 @@
 CJ_SOCKS 仓颉SOCKS协议库
 ======================
 
-实现基于SOCKS5协议的TCP连接
+实现基于SOCKS5、SOCKS4的Socket连接
 
 ## 📦 安装
 
@@ -21,6 +21,7 @@ cj_socks = { git = "https://gitcode.com/niuhuan_cn/cj_socks.git" }
 | 传输协议 | 详情 |
 | -- | -- |
 | SOCKS5 | https://datatracker.ietf.org/doc/html/rfc1928 |
+| SOCKS4 | - |
 
 
 ## 🔖 用例
