@@ -19,18 +19,12 @@ public class Socks5SocketFactory {
     }
 
     public func connect(domain: String, port: UInt16): StreamingSocket {
-        let socket: StreamingSocket = TcpSocket(this.host, this.port)
-        try {
-            return Socks5Socket(
-                socket,
+        return Socks5Socket(
+                TcpSocket(this.host, this.port),
                 domain,
                 port,
                 auth: auth
             )
-        } catch (e: Exception) {
-            socket.close()
-            throw e
-        }
     }
 }
 
@@ -91,7 +85,7 @@ public class Socks5Socket <: StreamingSocket {
         "Socks5Socket(${socket})"
     }
 
-    public func socks5Auth(auth!: Option<(String, String)> = None) {
+    private func socks5Auth(auth!: Option<(String, String)> = None) {
         socket.write([
             0x05,  // SOCKS5
             0x01   //  method count = 1
@@ -123,7 +117,7 @@ public class Socks5Socket <: StreamingSocket {
         }
     }
 
-    public func socks5Connect(domain: String, port: UInt16): Unit {
+    private func socks5Connect(domain: String, port: UInt16): Unit {
         // VER	CMD	RSV	ATYP	DST.ADDR	DST.PORT
         socket.write([
             0x05, // version
