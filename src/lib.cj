@@ -1,6 +1,7 @@
 package cj_socks
 
 import std.socket.*
+import std.net.*
 import std.io.*
 import std.collection.*
 import std.convert.*
@@ -71,7 +72,20 @@ public class Socks5Socket <: StreamingSocket {
         if (let Some((username, password)) <- auth) {
             socket.write([0x02]) // username/password
             socket.flush()
-            throw Exception("not implemented")
+            var buff = readSize(2)
+            if (buff[0] != 0x05 || buff[1] != 0x02) {
+                throw Exception("socks5 auth failed")
+            }
+            socket.write([0x01])
+            socket.write([UInt8(username.toArray().size)])
+            socket.write(username.toArray())
+            socket.write([UInt8(password.toArray().size)])
+            socket.write(password.toArray())
+            socket.flush()
+            buff = readSize(2)
+            if (buff[0] != 0x01 || buff[1] != 0x00) {
+                throw Exception("socks5 auth failed")
+            }
         } else {
             socket.write([0x00]) // no auth
             socket.flush()
