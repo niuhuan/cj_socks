@@ -12,7 +12,7 @@ CJ_SOCKS 仓颉SOCKS协议库
 ```yaml
 [dependencies]
 
-cj_mail = { git = "https://gitcode.com/niuhuan_cn/cj_socks.git" }
+cj_socks = { git = "https://gitcode.com/niuhuan_cn/cj_socks.git" }
 ```
 
 
