@@ -1,6 +1,5 @@
 package cj_socks.socks4
 
-import std.socket.*
 import std.net.*
 import std.io.*
 import std.collection.*
